@@ -69,10 +69,10 @@ if st.button("✨ Générer les titres", type="primary", use_container_width=Tru
         progress_bar.progress(30)
 
         with st.spinner("Extraction de la transcription..."):
-            transcript = get_transcript_from_url(youtube_url)
+            transcript, error = get_transcript_from_url(youtube_url)
 
         if not transcript:
-            st.error("❌ Impossible de récupérer la transcription. Vérifiez que la vidéo existe et possède des sous-titres.")
+            st.error(f"❌ {error or 'Impossible de récupérer la transcription.'}")
             st.stop()
 
         # Étape 2: Génération des titres

@@ -55,14 +55,10 @@ def main():
     # Étape 1 : Récupérer la transcription
     print("📝 ÉTAPE 1/2 : Récupération de la transcription")
     print("-" * 60)
-    transcript = get_transcript_from_url(youtube_url)
+    transcript, error = get_transcript_from_url(youtube_url)
 
     if not transcript:
-        print("❌ Impossible de récupérer la transcription.")
-        print("   Vérifiez que :")
-        print("   - L'URL est valide")
-        print("   - La vidéo existe")
-        print("   - Votre clé API est correcte")
+        print(f"❌ {error or 'Impossible de récupérer la transcription.'}")
         return
 
     print()
