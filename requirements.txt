@@ -1,0 +1,7 @@
+# Bibliothèques nécessaires pour le projet
+youtube-transcript-api>=1.2.3
+anthropic>=0.77.0
+python-dotenv==1.0.0
+
+# Interface web (optionnel)
+streamlit>=1.32.0
