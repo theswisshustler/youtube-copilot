@@ -22,10 +22,18 @@ load_dotenv()
 st.title("🎬 Générateur de Titres YouTube")
 st.markdown("---")
 
-# Vérifier la clé API
-anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+# Vérifier la clé API (supporte .env local ET Streamlit Cloud secrets)
+try:
+    # Essayer d'abord les secrets Streamlit Cloud
+    anthropic_api_key = st.secrets.get("ANTHROPIC_API_KEY")
+    youtube_api_token = st.secrets.get("YOUTUBE_TRANSCRIPT_API_TOKEN")
+except (FileNotFoundError, KeyError):
+    # Fallback sur .env pour développement local
+    anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+    youtube_api_token = os.getenv("YOUTUBE_TRANSCRIPT_API_TOKEN")
+
 if not anthropic_api_key:
-    st.error("❌ Clé API Anthropic non configurée dans le fichier .env")
+    st.error("❌ Clé API Anthropic non configurée. Configurez ANTHROPIC_API_KEY dans les secrets Streamlit ou dans le fichier .env")
     st.stop()
 
 # Interface utilisateur

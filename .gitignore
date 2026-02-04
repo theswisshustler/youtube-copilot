@@ -31,6 +31,7 @@ ENV/
 # Variables d'environnement et secrets
 .env
 .env.local
+.streamlit/secrets.toml
 
 # IDE
 .vscode/
