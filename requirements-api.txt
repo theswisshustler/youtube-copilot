@@ -1,0 +1,12 @@
+# Requirements pour l'API REST
+# Utilisez ce fichier pour déployer l'API sur Render, Railway, etc.
+
+# API Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.0.0
+
+# Core dependencies (déjà dans requirements.txt)
+youtube-transcript-api>=1.2.3
+anthropic>=0.77.0
+python-dotenv>=1.0.0
