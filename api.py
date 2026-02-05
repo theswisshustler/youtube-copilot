@@ -10,7 +10,7 @@ import os
 from dotenv import load_dotenv
 
 from youtube_api import get_transcript_from_url
-from title_generator import generate_titles
+from title_generator import generate_titles, generate_titles_from_description
 
 # Charger les variables d'environnement
 load_dotenv()
@@ -41,6 +41,19 @@ class GenerateTitlesRequest(BaseModel):
         json_schema_extra = {
             "example": {
                 "youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "num_titles": 5
+            }
+        }
+
+
+class GenerateFromDescriptionRequest(BaseModel):
+    description: str = Field(..., min_length=10, description="Description du contenu de la vidéo")
+    num_titles: int = Field(default=5, ge=1, le=10, description="Nombre de titres à générer (1-10)")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "description": "Une vidéo qui explique comment créer un stock de nourriture pour 3 mois en cas de crise",
                 "num_titles": 5
             }
         }
@@ -161,6 +174,60 @@ async def generate_youtube_titles(request: GenerateTitlesRequest):
 
     except Exception as e:
         # Gérer les erreurs inattendues
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur interne: {str(e)}"
+        )
+
+
+@app.post("/generate-from-description", response_model=GenerateTitlesResponse)
+async def generate_titles_from_desc(request: GenerateFromDescriptionRequest):
+    """
+    Génère des titres optimisés à partir d'une description de vidéo
+
+    - **description**: Description du contenu de la vidéo (minimum 10 caractères)
+    - **num_titles**: Nombre de titres à générer (1-10, défaut: 5)
+
+    Retourne une liste de titres optimisés pour maximiser les vues
+    """
+    # Vérifier la clé API Anthropic
+    anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not anthropic_api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="Clé API Anthropic non configurée"
+        )
+
+    try:
+        # Générer les titres depuis la description
+        result = generate_titles_from_description(
+            request.description,
+            anthropic_api_key,
+            num_titles=request.num_titles
+        )
+
+        titles = result.get("titles", [])
+        raw_response = result.get("raw_response", "")
+
+        if not titles:
+            return GenerateTitlesResponse(
+                success=False,
+                titles=None,
+                analysis=None,
+                error="Impossible de générer les titres avec Claude AI",
+                transcript_length=None
+            )
+
+        # Succès !
+        return GenerateTitlesResponse(
+            success=True,
+            titles=titles,
+            analysis=raw_response if raw_response else None,
+            error=None,
+            transcript_length=len(request.description)
+        )
+
+    except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Erreur interne: {str(e)}"
