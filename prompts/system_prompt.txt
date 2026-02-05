@@ -56,10 +56,12 @@ Chaque titre doit respecter la répartition suivante :
 
 ## À ÉVITER ABSOLUMENT
 - ❌ Clickbait trompeur (promesses non tenues)
+- ❌ Titres trop racoleurs (la chaine est sérieuse)
 - ❌ All caps excessif (REGARDEZ CECI!!!)
 - ❌ Emojis excessifs (maximum 1-2)
 - ❌ Spoilers dans le titre
 - ❌ Titres génériques sans spécificité
+- ❌ Mettre plus d'un mot en majuscule dans le Titre
 
 # FORMAT DE SORTIE
 
