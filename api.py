@@ -49,6 +49,7 @@ class GenerateTitlesRequest(BaseModel):
 class GenerateTitlesResponse(BaseModel):
     success: bool
     titles: Optional[List[str]] = None
+    analysis: Optional[str] = None
     error: Optional[str] = None
     transcript_length: Optional[int] = None
 
@@ -59,10 +60,9 @@ class GenerateTitlesResponse(BaseModel):
                 "titles": [
                     "🔥 Top 5 des astuces que PERSONNE ne connaît !",
                     "Comment gagner 1000€/mois avec cette méthode simple",
-                    "Le secret pour réussir en 2024 (révélé)",
-                    "Ils ne veulent pas que vous sachiez ça...",
-                    "La vérité sur ce sujet controversé"
+                    "Le secret pour réussir en 2024 (révélé)"
                 ],
+                "analysis": "Analyse Word Balance et scores...",
                 "transcript_length": 15430,
                 "error": None
             }
@@ -132,16 +132,20 @@ async def generate_youtube_titles(request: GenerateTitlesRequest):
             )
 
         # Étape 2: Générer les titres
-        titles = generate_titles(
+        result = generate_titles(
             transcript,
             anthropic_api_key,
             num_titles=request.num_titles
         )
 
+        titles = result.get("titles", [])
+        raw_response = result.get("raw_response", "")
+
         if not titles:
             return GenerateTitlesResponse(
                 success=False,
                 titles=None,
+                analysis=None,
                 error="Impossible de générer les titres avec Claude AI",
                 transcript_length=len(transcript)
             )
@@ -150,6 +154,7 @@ async def generate_youtube_titles(request: GenerateTitlesRequest):
         return GenerateTitlesResponse(
             success=True,
             titles=titles,
+            analysis=raw_response if raw_response else None,
             error=None,
             transcript_length=len(transcript)
         )

@@ -86,25 +86,33 @@ if st.button("✨ Générer les titres", type="primary", use_container_width=Tru
         progress_bar.progress(60)
 
         with st.spinner("Analyse par l'IA..."):
-            titles = generate_titles(transcript, anthropic_api_key, num_titles=num_titles)
+            result = generate_titles(transcript, anthropic_api_key, num_titles=num_titles)
 
         progress_bar.progress(100)
         status_text.empty()
+
+        titles = result.get("titles", [])
+        raw_response = result.get("raw_response", "")
+        has_custom_prompt = result.get("has_custom_prompt", False)
 
         if titles:
             st.success(f"✅ {len(titles)} titres générés avec succès!")
             st.markdown("---")
 
-            # Affichage des titres
-            st.subheader("🎯 Propositions de titres")
-
-            for i, title in enumerate(titles, 1):
-                col_title, col_copy = st.columns([5, 1])
-                with col_title:
-                    st.markdown(f"**{i}.** {title}")
-                with col_copy:
-                    if st.button("📋", key=f"copy_{i}", help="Copier ce titre"):
-                        st.toast(f"✓ Titre {i} copié!", icon="✅")
+            # Si prompt personnalisé, afficher l'analyse complète
+            if has_custom_prompt and raw_response:
+                st.subheader("🎯 Analyse complète des titres")
+                st.markdown(raw_response)
+            else:
+                # Affichage simple des titres
+                st.subheader("🎯 Propositions de titres")
+                for i, title in enumerate(titles, 1):
+                    col_title, col_copy = st.columns([5, 1])
+                    with col_title:
+                        st.markdown(f"**{i}.** {title}")
+                    with col_copy:
+                        if st.button("📋", key=f"copy_{i}", help="Copier ce titre"):
+                            st.toast(f"✓ Titre {i} copié!", icon="✅")
 
             # Statistiques
             st.markdown("---")
@@ -115,8 +123,9 @@ if st.button("✨ Générer les titres", type="primary", use_container_width=Tru
                 with col_stat2:
                     st.metric("Mots", f"{len(transcript.split()):,}")
                 with col_stat3:
-                    avg_title_len = sum(len(t) for t in titles) // len(titles)
-                    st.metric("Longueur moy. titre", f"{avg_title_len} car.")
+                    if titles:
+                        avg_title_len = sum(len(t) for t in titles) // len(titles)
+                        st.metric("Longueur moy. titre", f"{avg_title_len} car.")
         else:
             st.error("❌ Impossible de générer les titres. Vérifiez votre clé API.")
 

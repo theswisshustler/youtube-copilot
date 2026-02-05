@@ -2,7 +2,7 @@
 Module pour générer des titres YouTube avec l'IA Claude (Anthropic)
 """
 from anthropic import Anthropic
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, Union
 from pathlib import Path
 
 
@@ -21,7 +21,7 @@ def load_system_prompt() -> Optional[str]:
     return None
 
 
-def generate_titles(transcript: str, api_key: str, num_titles: int = 5) -> List[str]:
+def generate_titles(transcript: str, api_key: str, num_titles: int = 5) -> Dict[str, Any]:
     """
     Génère des propositions de titres YouTube à partir d'une transcription.
 
@@ -31,7 +31,7 @@ def generate_titles(transcript: str, api_key: str, num_titles: int = 5) -> List[
         num_titles: Nombre de titres à générer (par défaut 5)
 
     Returns:
-        Liste de titres proposés
+        Dict avec 'titles' (liste), 'raw_response' (texte complet), 'has_custom_prompt' (bool)
     """
     print(f"🤖 Analyse de la transcription avec Claude...")
 
@@ -39,7 +39,18 @@ def generate_titles(transcript: str, api_key: str, num_titles: int = 5) -> List[
     client = Anthropic(api_key=api_key)
 
     # Construire le prompt pour Claude
-    prompt = f"""Analyse cette transcription de vidéo YouTube et génère {num_titles} propositions de titres optimisés.
+    # Si un system prompt personnalisé existe, on lui laisse contrôler le format
+    system_prompt = load_system_prompt()
+
+    if system_prompt:
+        # Prompt simplifié - le system prompt gère les instructions
+        prompt = f"""Génère {num_titles} titres optimisés pour cette vidéo YouTube.
+
+Transcription :
+{transcript[:3000]}..."""
+    else:
+        # Prompt complet par défaut (sans system prompt)
+        prompt = f"""Analyse cette transcription de vidéo YouTube et génère {num_titles} propositions de titres optimisés.
 
 Les titres doivent être :
 - Accrocheurs et engageants
@@ -54,13 +65,10 @@ Transcription :
 Réponds UNIQUEMENT avec les {num_titles} titres, un par ligne, numérotés de 1 à {num_titles}."""
 
     try:
-        # Charger le system prompt personnalisé
-        system_prompt = load_system_prompt()
-
         # Appeler l'API Claude avec le modèle Sonnet 4.5 (février 2026)
         api_params = {
             "model": "claude-sonnet-4-5-20250929",
-            "max_tokens": 1024,
+            "max_tokens": 4096,
             "messages": [{"role": "user", "content": prompt}]
         }
 
@@ -74,21 +82,28 @@ Réponds UNIQUEMENT avec les {num_titles} titres, un par ligne, numérotés de 1
         # Extraire la réponse
         response_text = message.content[0].text
 
-        # Parser les titres (un par ligne)
+        # Parser les titres (lignes commençant par un numéro ou contenant "Titre")
         titles = []
         for line in response_text.strip().split('\n'):
             line = line.strip()
-            if line and len(line) > 0:
-                # Retirer les numéros au début (1., 2., etc.)
-                cleaned_title = re.sub(r'^\d+[\.\)]\s*', '', line)
-                if cleaned_title:
-                    titles.append(cleaned_title)
+            # Chercher les lignes de titre (numérotées ou avec "Titre :")
+            if re.match(r'^\d+[\.\)]\s*', line) or line.startswith('Titre'):
+                # Retirer les préfixes
+                cleaned = re.sub(r'^(Titre\s*:?\s*|\d+[\.\)]\s*)', '', line)
+                # Retirer les guillemets
+                cleaned = cleaned.strip('"\'""')
+                if cleaned and len(cleaned) > 10:  # Titre minimum 10 chars
+                    titles.append(cleaned)
 
-        return titles[:num_titles]
+        return {
+            "titles": titles[:num_titles],
+            "raw_response": response_text,
+            "has_custom_prompt": system_prompt is not None
+        }
 
     except Exception as e:
         print(f"❌ Erreur lors de la génération des titres: {e}")
-        return []
+        return {"titles": [], "raw_response": "", "has_custom_prompt": False}
 
 
 import re
