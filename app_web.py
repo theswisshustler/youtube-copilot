@@ -118,7 +118,8 @@ with tab_url:
                             avg_title_len = sum(len(t) for t in titles) // len(titles)
                             st.metric("Longueur moy. titre", f"{avg_title_len} car.")
                 else:
-                    st.error("❌ Impossible de générer les titres. Vérifiez votre clé API.")
+                    error_detail = result.get("error", "Erreur inconnue")
+                    st.error(f"❌ Impossible de générer les titres: {error_detail}")
 
 # ============ ONGLET DESCRIPTION ============
 with tab_description:
@@ -170,7 +171,8 @@ with tab_description:
                     for i, title in enumerate(titles, 1):
                         st.markdown(f"**{i}.** {title}")
             else:
-                st.error("❌ Impossible de générer les titres. Vérifiez votre clé API.")
+                error_detail = result.get("error", "Erreur inconnue")
+                st.error(f"❌ Impossible de générer les titres: {error_detail}")
 
 # Sidebar avec informations
 with st.sidebar:

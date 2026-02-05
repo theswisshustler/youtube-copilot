@@ -102,8 +102,11 @@ Réponds UNIQUEMENT avec les {num_titles} titres, un par ligne, numérotés de 1
         }
 
     except Exception as e:
-        print(f"❌ Erreur lors de la génération des titres: {e}")
-        return {"titles": [], "raw_response": "", "has_custom_prompt": False}
+        import traceback
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        print(f"❌ Erreur: {error_msg}")
+        print(traceback.format_exc())
+        return {"titles": [], "raw_response": "", "has_custom_prompt": False, "error": error_msg}
 
 
 import re
@@ -186,5 +189,8 @@ Réponds UNIQUEMENT avec les {num_titles} titres, un par ligne, numérotés de 1
         }
 
     except Exception as e:
-        print(f"❌ Erreur lors de la génération des titres: {e}")
-        return {"titles": [], "raw_response": "", "has_custom_prompt": False}
+        import traceback
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        print(f"❌ Erreur: {error_msg}")
+        print(traceback.format_exc())
+        return {"titles": [], "raw_response": "", "has_custom_prompt": False, "error": error_msg}
