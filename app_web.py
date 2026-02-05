@@ -22,18 +22,24 @@ load_dotenv()
 st.title("🎬 Générateur de Titres YouTube")
 st.markdown("---")
 
-# Vérifier la clé API (supporte .env local ET Streamlit Cloud secrets)
+# Vérifier les clés API (supporte .env local ET Streamlit Cloud secrets)
 try:
     # Essayer d'abord les secrets Streamlit Cloud
     anthropic_api_key = st.secrets.get("ANTHROPIC_API_KEY")
-    youtube_api_token = st.secrets.get("YOUTUBE_TRANSCRIPT_API_TOKEN")
-except (FileNotFoundError, KeyError):
+    youtube_api_token = st.secrets.get("YOUTUBE_TRANSCRIPT_API_KEY")
+except (FileNotFoundError, KeyError, AttributeError):
     # Fallback sur .env pour développement local
     anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
-    youtube_api_token = os.getenv("YOUTUBE_TRANSCRIPT_API_TOKEN")
+    youtube_api_token = os.getenv("YOUTUBE_TRANSCRIPT_API_KEY")
 
+# Vérifications
 if not anthropic_api_key:
     st.error("❌ Clé API Anthropic non configurée. Configurez ANTHROPIC_API_KEY dans les secrets Streamlit ou dans le fichier .env")
+    st.stop()
+
+if not youtube_api_token:
+    st.error("❌ Token API YouTube Transcript non configuré. Configurez YOUTUBE_TRANSCRIPT_API_KEY dans les secrets Streamlit ou dans le fichier .env")
+    st.info("💡 Obtenez votre token gratuit sur: https://www.youtube-transcript.io/profile")
     st.stop()
 
 # Interface utilisateur
@@ -126,9 +132,10 @@ with st.sidebar:
     ### Prérequis
     - La vidéo doit avoir des sous-titres (automatiques ou manuels)
     - Clé API Anthropic configurée
+    - Token YouTube Transcript API configuré
 
     ### Fonctionnalités
-    - ✅ Récupération gratuite des transcriptions
+    - ✅ API fiable youtube-transcript.io
     - ✅ Génération IA avec Claude Sonnet 4.5
     - ✅ Titres optimisés SEO
     - ✅ Interface moderne et intuitive
